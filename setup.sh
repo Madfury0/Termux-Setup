@@ -1,50 +1,47 @@
 #!/bin/bash
 
-# 1. Remove MOTD (Message of the Day)
-rm -f /usr/etc/motd
+# 1. Remove MOTD
+[ -f "/usr/etc/motd" ] && rm /usr/etc/motd
 
 # 2. Update Termux base
-pkg update && pkg upgrade -y
+pkg update -y && pkg upgrade -y
 
 # 3. Install essential Termux packages
-pkg install proot-distro -y
+pkg install -y proot-distro git
 
 # 4. Install Ubuntu (latest LTS version)
 proot-distro install ubuntu
 
 # 5. Create safe login script for Ubuntu
-cat > $HOME/ubuntu-login.sh <<EOF
+cat > "$HOME/ubuntu-login.sh" <<'EOF'
 #!/bin/bash
+clear
 echo "Welcome to Ubuntu in Termux"
 proot-distro login ubuntu
 EOF
-chmod +x $HOME/ubuntu-login.sh
+chmod +x "$HOME/ubuntu-login.sh"
 
-# 6. Modify .bashrc to run login script
-touch $HOME/.bashrc
-if ! grep -q "$HOME/ubuntu-login.sh" "$HOME/.bashrc"; then
-    echo "$HOME/ubuntu-login.sh" >> "$HOME/.bashrc"
+# 6. Safer .bashrc modification
+if ! grep -q "ubuntu-login.sh" "$HOME/.bashrc"; then
+    echo "[ -z \$PROOT_ENV ] && source $HOME/ubuntu-login.sh" >> "$HOME/.bashrc"
 fi
 
-# 7. Prevent login script from running more than once in the session
-if [ -z "$LOGIN_SCRIPT_EXECUTED" ]; then
-    export LOGIN_SCRIPT_EXECUTED=true
-    $HOME/ubuntu-login.sh
+# 7. First-run execution (safe version)
+if [ ! -f "$HOME/.ubuntu_initialized" ]; then
+    touch "$HOME/.ubuntu_initialized"
+    "$HOME/ubuntu-login.sh" <<'INNER_EOF'
+        # Commands to run INSIDE Ubuntu proot
+        apt update -y && apt upgrade -y
+        apt install -y git
+        git clone https://github.com/Madfury0/.dotfiles.git
+        cd .dotfiles/scripts
+        
+        # Modify setup.sh safely
+        sed -i 's/sudo //g' setup.sh
+        sed -i '/# Prevent running as root/,/^fi$/d' setup.sh
+        
+        # Run setup
+        chmod +x setup.sh
+        ./setup.sh
+INNER_EOF
 fi
-
-# 8. Inside the Ubuntu proot environment
-# Update Ubuntu and install git
-apt update && apt upgrade -y
-apt install git -y
-
-# Clone dotfiles repository
-git clone https://github.com/Madfury0/.dotfiles.git
-cd ~/.dotfiles/scripts
-
-# 9. Modify setup.sh safely (remove sudo and root protection)
-sed -i 's/sudo //g' ~/.dotfiles/scripts/setup.sh
-sed -i '/# Prevent running as root/,/^fi$/d' ~/.dotfiles/scripts/setup.sh
-
-# 10. Run setup
-chmod +x ~/.dotfiles/scripts/setup.sh
-./setup.sh
