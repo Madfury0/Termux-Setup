@@ -7,7 +7,7 @@ rm -f /usr/etc/motd
 pkg update && pkg upgrade -y
 
 # 3. Install essential Termux packages
-pkg install proot-distro git -y
+pkg install proot-distro -y
 
 # 4. Install Ubuntu (latest LTS version)
 proot-distro install ubuntu
