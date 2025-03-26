@@ -1,22 +1,39 @@
-# Removing motd
+# 1. motd removal 
 rm ../usr/etc/motd
-# Update and upgrade 
-apt update && apt upgrade -y
-# Install proot-distro
-apt install proot-distro -y
-# install Ubuntu
-proot-distro install ubuntu 
-# create .bashrc file
-touch .bashrc
-# add Ubuntu login
-echo "Welcome to Ubuntu" >> .bashrc
-echo "proot-distro login ubuntu" >> .bashrc
-# Login to Ubuntu 
+
+# 2. Update Termux base
+pkg update && pkg upgrade -y
+
+# 3. Install essential Termux packages
+pkg install proot-distro git -y
+
+# 4. Install Ubuntu (latest LTS)
+proot-distro install ubuntu
+
+# 5. Create safe login script instead of .bashrc modification
+cat > $HOME/ubuntu-login.sh <<EOF
+#!/bin/bash
+echo "Welcome to Ubuntu in Termux"
 proot-distro login ubuntu
-# ran . dotfiles GitHub repo installation guide
+EOF
+chmod +x $HOME/ubuntu-login.sh
+
+# 6. Login to Ubuntu 
+touch .bashrc
+echo "./ubuntu-login.sh" >> .bashrc
+./ubuntu-login.sh
+
+# 7. --- Now inside Ubuntu proot environment --- 
+# Clone dotfiles
 apt update && apt upgrade -y
 apt install git -y
 git clone https://github.com/Madfury0/.dotfiles.git
 cd ~/.dotfiles/scripts
+
+# 11. Modify setup.sh safely
+sed -i 's/sudo //g' ~/.dotfiles/scripts/setup.sh
+sed -i '/# Prevent running as root/,/^fi$/d' setup.sh
+
+# 12. Run setup
 chmod +x setup.sh
-echo "On Ubuntu proot distro, edit setup.sh and remove the first root check and <sudo> "
+./setup.sh
