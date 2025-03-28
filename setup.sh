@@ -45,7 +45,7 @@ chmod +x "$login_script"
 
 # 7. Safer .bashrc modification
 if ! grep -q "${distro}-login.sh" "$HOME/.bashrc"; then
-    echo "[ -z \\\$PROOT_ENV ] && source $login_script" >> "$HOME/.bashrc"
+    echo "[ -z \\\$PROOT_ENV ] && source ${distro}-login.sh" >> "$HOME/.bashrc"
 fi
 
 # 8. First-run execution (safe version)
