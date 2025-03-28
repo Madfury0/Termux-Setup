@@ -4,7 +4,7 @@
 [ -f "/usr/etc/motd" ] && rm /usr/etc/motd
 
 # 2. Update Termux base
-pkg update -y && pkg upgrade -y
+pkg update  && yes | pkg upgrade
 
 # 3. Install essential Termux packages
 pkg install -y proot-distro git
