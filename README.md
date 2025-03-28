@@ -121,6 +121,6 @@ nano setup.sh
 
 ---
 
-**📜 License**: none
+
 **⚠️ Warning**: Proot environments have limitations - not suitable for kernel-level development  
 **💡 Tip**: Use Termux:Widget for quick environment access from Android home screen  
